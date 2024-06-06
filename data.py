@@ -20,4 +20,4 @@ def create(id, name, surname, document):
         df_orders['surname'].append(surname)
         df_orders['document'].append(document)
         print(df_orders)
-        pd.DataFrame(df_orders).to_excel('Книга1.xlsx', sheet_name='Лист1')
+        pd.DataFrame(df_orders).to_excel('Sem.xlsx', sheet_name='Лист1')

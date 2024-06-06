@@ -109,6 +109,7 @@ async def command_test_handler(message: Message) -> None:
 @router.message(F.text == 'Узнать')
 async def getres(message: Message, state: FSMContext):
     user = data.build()
+    print(user)
     if message.chat.id not in user:
         await message.answer("Щас я тебя в книжечку запишу")
         await cmd_food(message, state)
@@ -171,10 +172,9 @@ async def food_chosen(message: Message, state: FSMContext):
          text=f"Проверяй \n{user_data['name']}\n{user_data['surname']}\n{message.text}"
     )
     data.create(message.chat.id, user_data['name'], user_data['surname'], message.text)
-    await state.clear()
     await state.set_data(user_data)
     await getres(message, state)
-
+    await state.clear()
 
 
 async def main() -> None:
