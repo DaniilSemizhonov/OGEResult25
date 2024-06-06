@@ -3,7 +3,7 @@ import pandas as pd
 
 def build():
     empty = {}
-    df_orders = pd.read_excel('Книга1.xlsx', sheet_name='Лист1', usecols=[1, 2, 3, 4]).to_dict('list')
+    df_orders = pd.read_excel('Sem.xlsx', sheet_name='Лист1', usecols=[1, 2, 3, 4]).to_dict('list')
     for i in range(len(df_orders['id'])):
         empty[df_orders['id'][i]] = {'name': df_orders['name'][i],
                                      'surname': df_orders['surname'][i],
@@ -11,7 +11,7 @@ def build():
     return empty
 
 def create(id, name, surname, document):
-    df_orders = pd.read_excel('Книга1.xlsx', sheet_name='Лист1', usecols=[1, 2, 3, 4]).to_dict('list')
+    df_orders = pd.read_excel('Sem.xlsx', sheet_name='Лист1', usecols=[1, 2, 3, 4]).to_dict('list')
     if id in df_orders['id']:
         print('пошёл ты')
     else:
