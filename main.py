@@ -3,6 +3,10 @@ import datetime
 import logging
 import sys
 
+import requests
+import fake_useragent
+from bs4 import BeautifulSoup, SoupStrainer
+
 from aiogram import Bot, Dispatcher, html
 from aiogram import Router, F
 from aiogram.client.default import DefaultBotProperties
@@ -17,7 +21,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from random import randint
 import data
-import parser
+
 
 TOKEN = ''
 
@@ -33,7 +37,41 @@ kb = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+def get_result(name : str, surname : str, document: int, getuser : bool):
+    user = fake_useragent.UserAgent().random
+    if getuser == True:
+        return user
+    else:
+        url = 'https://result.rcoi25.ru/'
+        headers = {
+            'User-Agent': user,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
 
+        session = requests.Session()
+        r = session.get(url, headers=headers)
+        token = BeautifulSoup(r.content, 'html.parser').findAll('input')[-1]['value']
+
+        datas = {
+            "form[name]": name,
+            "form[surname]": surname,
+            "form[document]": document,
+
+            "form[_token]": token
+        }
+
+        r = session.post(url, headers=headers, data=datas)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        g = list(soup.findAll('tr'))
+        res = []
+        for i in range(len(g)):
+            res.append(str(g[i]).replace('<th>', '').replace('</th>', '').replace('<td>', '').
+                       replace('</td>', '').replace('<tr class="table-success">', '').replace('<tr>', '').
+                       replace('</tr>', '').replace(
+                '[<tr><th>Дата</th><th>Предмет</th><th>Место проведения</th><th>Тестовый балл</th><th>Статус результата</th><th>Подробности</th>',
+                '').
+                       replace('<tr class="table-warning">', ''))
+        return ', '.join(map(str, res[1:len(res)])).replace(',', '')
 # @dp.message(CommandStart())
 # async def command_start_handler(message: Message) -> None:
 #     await message.answer(f"Здравсвуйте, {html.bold(message.from_user.full_name)}!\nНажимая {html.bold('Далее')} вы даёте согласие на обработку персональных данных", reply_markup=kb)
@@ -77,14 +115,14 @@ async def getres(message: Message, state: FSMContext):
     else:
         await message.answer(f'Актуально на {datetime.datetime.now()}')
         user = data.build()
-        await message.answer(parser.get_result(user[message.chat.id]['name'], user[message.chat.id]['surname'], int(user[message.chat.id]['document']), False))
+        await message.answer(get_result(user[message.chat.id]['name'], user[message.chat.id]['surname'], int(user[message.chat.id]['document']), False))
         await message.answer('Поздравляю!')
 
 
 @router.message(F.text == 'Настройки')
 async def getsettings(message: Message, state: FSMContext):
     user_data = await state.get_data()
-    user = parser.get_result(None, None, None, getuser=True)
+    user = get_result(None, None, None, getuser=True)
     await message.answer(f'Время на сервере {datetime.datetime.now()}\nАгент {user}')
     try:
         await message.answer(f"Я на тебя тут нарыл: \n{user_data['name']}\n{user_data['surname']}\n{user_data['document']}")
